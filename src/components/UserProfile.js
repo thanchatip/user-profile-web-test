@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 const UserProfile = ({ userId }) => {
   const [user, setUser] = useState(null);
-  const [error, setError] = useState('');
-  const apiBase = 'https://dummyjson.com';
+  const [error, setError] = useState("");
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`${apiBase}/users/${userId}`);
+        const response = await fetch(`https://api.example.com/users/${userId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch user data');
+          throw new Error("Failed to fetch user data");
         }
         const userData = await response.json();
         setUser(userData);
@@ -28,7 +28,6 @@ const UserProfile = ({ userId }) => {
   return (
     <div>
       <h1>{user.name}</h1>
-      <h1>{user.firstName}</h1>
       <p>Email: {user.email}</p>
     </div>
   );
