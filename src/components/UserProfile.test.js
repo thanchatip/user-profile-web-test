@@ -1,41 +1,46 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import UserProfile from "./components/UserProfile";
+import UserProfile from "./UserProfile";
 
-// Mock fetch API
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () =>
-      Promise.resolve({ name: "John Doe", email: "john@example.com" }),
-  })
-);
+describe("User Profile Component", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-test("renders user profile", async () => {
-  render(<UserProfile userId="1" />);
+  it("renders user profile", async () => {
+    global.fetch = jest.fn().mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({ name: "John Doe", email: "john@example.com" }),
+    });
 
-  // Loading state
-  expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    render(<UserProfile userId="1" />);
 
-  // Wait for user data to be displayed
-  await waitFor(() =>
-    expect(screen.getByText(/john doe/i)).toBeInTheDocument()
-  );
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
 
-  // Check if email is displayed
-  expect(screen.getByText(/john@example.com/i)).toBeInTheDocument();
-});
+    await waitFor(() => {
+      expect(screen.getByText(/john doe/i)).toBeInTheDocument();
+      expect(screen.getByText(/john@example.com/i)).toBeInTheDocument();
+    });
 
-test("handles error", async () => {
-  fetch.mockImplementationOnce(() =>
-    Promise.reject(new Error("Failed to fetch user data"))
-  );
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  });
 
-  render(<UserProfile userId="2" />);
+  it("handles fetch error", async () => {
+    global.fetch = jest
+      .fn()
+      .mockRejectedValueOnce(new Error("Failed to fetch user data"));
 
-  // Wait for error message to be displayed
-  await waitFor(() =>
-    expect(screen.getByText(/failed to fetch user data/i)).toBeInTheDocument()
-  );
+    render(<UserProfile userId="2" />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/failed to fetch user data/i)
+      ).toBeInTheDocument();
+    });
+
+    // Assert that loading state is gone
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  });
 });
